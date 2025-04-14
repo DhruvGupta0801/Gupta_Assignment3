@@ -1,0 +1,17 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'northamerica-northeast1-docker.pkg.dev/semester-2-100992302/gupta-ecr/gupta-flask-app', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'northamerica-northeast1-docker.pkg.dev/semester-2-100992302/gupta-ecr/gupta-flask-app']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - run
+  - deploy
+  - gupta-cloud-run
+  - --image=northamerica-northeast1-docker.pkg.dev/semester-2-100992302/gupta-ecr/gupta-flask-app
+  - --region=northamerica-northeast1
+  - --platform=managed
+  - --min-instances=1
+  - --max-instances=4
+  - --port=5000
+  - --allow-unauthenticated
