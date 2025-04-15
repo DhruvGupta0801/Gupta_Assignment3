@@ -3,15 +3,24 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 911167924688.dkr.ecr.us-east-1.amazonaws.com
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 911167924688.dkr.ecr.us-east-1.amazonaws.com || { echo "Failed to login to ECR"; exit 1; }
   build:
     commands:
-      - echo Build started on `date`
+      - echo Build started on date
       - echo Building the Docker image...
-      - docker build -t gupta-ecr .
-      - docker tag gupta-ecr:latest 911167924688.dkr.ecr.us-east-1.amazonaws.com/gupta-ecr:latest
+      - docker build -t gupta-ecr . || { echo "Failed to build Docker image"; exit 1; }
+      - docker tag gupta-ecr:latest 911167924688.dkr.ecr.us-east-1.amazonaws.com/gupta-ecr:latest || { echo "Failed to tag Docker image"; exit 1; }
   post_build:
     commands:
-      - echo Build completed on `date`
+      - echo Build completed on date
       - echo Pushing the Docker image...
-      - docker push 911167924688.dkr.ecr.us-east-1.amazonaws.com/gupta-ecr:latest
+      - docker push 911167924688.dkr.ecr.us-east-1.amazonaws.com/gupta-ecr:latest || { echo "Failed to push Docker image"; exit 1; }
+      - echo Creating imagedefinitions.json...
+      - echo '[{"name":"gupta-flask-container","imageUri":"911167924688.dkr.ecr.us-east-1.amazonaws.com/gupta-ecr:latest"}]' > imagedefinitions.json
+      - if [ ! -f imagedefinitions.json ]; then echo "Error: imagedefinitions.json not created"; exit 1; fi
+      - echo Verifying imagedefinitions.json...
+      - cat imagedefinitions.json
+      - ls -l imagedefinitions.json
+artifacts:
+  files:
+    - imagedefinitions.json
